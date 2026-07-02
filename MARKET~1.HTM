@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code·Design·Sync 활용 현황 및 향후 방향 — 디지털마케팅팀</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --ink:#1a2233; --sub:#68718a;
+    --line:#e7ebf3; --brand:#3b5bdb; --brand2:#5c7cfa; --accent:#12b886;
+    --amber:#f59f00; --rose:#e8590c; --violet:#7048e8; --cyan:#0c8599;
+    --shadow:0 1px 3px rgba(20,30,60,.06),0 8px 24px rgba(20,30,60,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .layout{display:flex;min-height:100vh}
+
+  .sidebar{width:250px;flex:0 0 250px;background:#131a2b;color:#c9d2e6;
+    position:sticky;top:0;height:100vh;padding:26px 20px;overflow-y:auto}
+  .sb-brand{font-size:11px;letter-spacing:2px;color:#7d88a6;font-weight:700}
+  .sb-title{font-size:17px;font-weight:800;color:#fff;margin:8px 0 4px;line-height:1.4}
+  .sb-meta{font-size:12px;color:#8994b2;margin-bottom:24px}
+  .sb-nav a{display:block;padding:9px 12px;border-radius:9px;font-size:13px;
+    color:#aeb8d4;margin-bottom:3px;transition:.15s;text-decoration:none}
+  .sb-nav a:hover{background:#1d283f;color:#fff}
+  .sb-nav .grp{margin-top:15px;font-size:10.5px;letter-spacing:1px;color:#6f7a9c;
+    font-weight:700;padding-left:12px}
+  .sb-foot{margin-top:26px;font-size:11px;color:#5f6a8a;border-top:1px solid #263149;padding-top:16px;line-height:1.7}
+
+  .main{flex:1;padding:34px 40px 70px;max-width:1120px;margin:0 auto;width:100%}
+  header.page{margin-bottom:22px}
+  .eyebrow{color:var(--brand);font-weight:800;font-size:12px;letter-spacing:1.5px}
+  h1.page{font-size:26px;font-weight:800;margin:6px 0 6px;letter-spacing:-.5px;line-height:1.3}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .tag{background:#fff;border:1px solid var(--line);border-radius:999px;
+    padding:5px 13px;font-size:12.5px;color:var(--sub);box-shadow:var(--shadow)}
+  .tag b{color:var(--ink)}
+
+  .answer{background:linear-gradient(135deg,#3b5bdb,#5c7cfa);color:#fff;border-radius:16px;
+    padding:22px 24px;box-shadow:var(--shadow);margin-top:22px}
+  .answer .q{font-size:12.5px;opacity:.85;font-weight:600;margin-bottom:10px}
+  .answer .q b{opacity:1}
+  .answer .row{display:flex;gap:20px;flex-wrap:wrap}
+  .answer .col{flex:1;min-width:260px}
+  .answer .k{font-size:12px;font-weight:800;letter-spacing:.5px;opacity:.9;margin-bottom:4px}
+  .answer .v{font-size:14px;line-height:1.55}
+  .answer .v b{font-weight:800}
+
+  section{margin-top:36px;scroll-margin-top:20px}
+  .sec-head{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+  .sec-num{background:var(--brand);color:#fff;font-weight:800;font-size:13px;
+    width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:0 0 26px}
+  .sec-head h2{font-size:18px;font-weight:800;letter-spacing:-.3px}
+  .sec-head .sub{font-size:12.5px;color:var(--sub);margin-left:auto;font-weight:500}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:22px;box-shadow:var(--shadow)}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--brand)}
+  .kpi.g::before{background:var(--accent)} .kpi.a::before{background:var(--amber)} .kpi.v::before{background:var(--violet)}
+  .kpi .lab{font-size:12px;color:var(--sub);font-weight:600}
+  .kpi .val{font-size:25px;font-weight:800;letter-spacing:-.5px;margin-top:4px}
+  .kpi .val small{font-size:13px;font-weight:700;color:var(--sub)}
+  .kpi .note{font-size:11.5px;color:var(--sub);margin-top:3px}
+
+  .toolcard{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);overflow:hidden}
+  .toolcard .top{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .toolcard .ico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+    color:#fff;font-weight:800;font-size:15px;flex:0 0 34px}
+  .toolcard .nm{font-weight:800;font-size:15px}
+  .toolcard .nm span{display:block;font-size:11.5px;color:var(--sub);font-weight:500}
+  .toolcard .body{padding:16px 20px}
+  .toolcard .blk{margin-bottom:14px}
+  .toolcard .blk:last-child{margin-bottom:0}
+  .toolcard .lab{font-size:11px;font-weight:800;letter-spacing:.5px;margin-bottom:6px;
+    display:inline-block;padding:2px 9px;border-radius:6px}
+  .lab.now{background:#e7f5ee;color:#0b7a52}
+  .lab.next{background:#e8edff;color:var(--brand)}
+  .toolcard p{font-size:12.8px;color:#33415c;line-height:1.55}
+  .status-off{font-size:12px;color:var(--rose);font-weight:700}
+
+  .site{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);text-decoration:none;transition:.15s;height:100%;position:relative}
+  .site:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(20,30,60,.1);border-color:var(--brand2)}
+  .site .badge{font-size:11px;font-weight:800;color:var(--brand);background:#eef2ff;
+    padding:2px 8px;border-radius:6px;align-self:flex-start;margin-bottom:8px}
+  .site .t{font-weight:800;font-size:14px;margin-bottom:4px}
+  .site .d{font-size:12px;color:var(--sub);flex:1}
+  .site .u{font-size:11px;color:var(--brand2);margin-top:10px;word-break:break-all;font-weight:600}
+  .site .mem{font-size:15px;font-weight:800;color:var(--ink);margin-top:8px}
+  .site .mem span{color:var(--sub);font-weight:600;font-size:11px}
+  .site.nolink{cursor:default}
+  .site.nolink:hover{transform:none;box-shadow:var(--shadow);border-color:var(--line)}
+  .site.new{border-color:var(--accent);background:#f5fdf9}
+  .flag{position:absolute;top:14px;right:14px;font-size:10px;font-weight:800;color:#fff;
+    background:var(--accent);padding:2px 8px;border-radius:6px}
+
+  .flowmap{display:flex;flex-direction:column;gap:12px}
+  .sources{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.sources{grid-template-columns:1fr}}
+  .srcbox{border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;background:#fbfcfe}
+  .srcbox.db{border-color:#c3cffb;background:#f3f6ff}
+  .srcbox.ch{border-color:#b8ead9;background:#f0fbf6}
+  .srchd{font-weight:800;font-size:13.5px;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+  .srchd .b{width:9px;height:9px;border-radius:50%}
+  .chip{display:inline-block;font-size:12px;font-weight:600;color:#33415c;background:#fff;
+    border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin:0 5px 6px 0}
+  .converge{text-align:center;font-size:12.5px;font-weight:800;color:var(--brand2);letter-spacing:.5px}
+  .pipeline{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .pbox{flex:1;min-width:118px;background:#131a2b;color:#fff;border-radius:12px;padding:14px 12px;text-align:center;
+    display:flex;flex-direction:column;justify-content:center}
+  .pbox .pt{font-weight:800;font-size:13.5px}
+  .pbox .pd{font-size:11px;color:#aeb8d4;margin-top:3px}
+  .pbox.hl{background:var(--brand)}
+  .pbox.exec{background:var(--accent)}
+  .pcon{display:grid;place-items:center;color:var(--brand2);font-size:20px;font-weight:800;padding:0 6px}
+  @media(max-width:720px){.pcon{transform:rotate(90deg);padding:6px 0}}
+
+  ul.notes{list-style:none}
+  ul.notes li{font-size:13px;color:#33415c;padding:9px 0 9px 20px;position:relative;border-top:1px dashed var(--line)}
+  ul.notes li:first-child{border-top:none}
+  ul.notes li::before{content:"▪";color:var(--brand);position:absolute;left:2px;font-weight:900}
+  ul.notes b{color:var(--ink)}
+
+  .plan{border-top:4px solid var(--brand)}
+  .plan.g{border-top-color:var(--accent)} .plan.a{border-top-color:var(--amber)} .plan.v{border-top-color:var(--violet)}
+  .plan .h{font-weight:800;font-size:14.5px;margin-bottom:6px}
+  .plan p{font-size:12.8px;color:#33415c;line-height:1.55}
+
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .step{flex:1;min-width:140px;background:#f7f9fd;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .step .n{font-size:11px;font-weight:800;color:var(--brand)}
+  .step .t{font-size:13px;font-weight:700;margin-top:3px}
+  .step .d{font-size:11.5px;color:var(--sub);margin-top:3px}
+  .arrow{display:grid;place-items:center;color:var(--brand2);font-size:20px;font-weight:800;padding:0 6px}
+  @media(max-width:900px){.arrow{transform:rotate(90deg);padding:6px 0}}
+
+  .apptable{width:100%;border-collapse:collapse;font-size:13px}
+  .apptable th,.apptable td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:right}
+  .apptable th{background:#f7f9fd;color:var(--sub);font-weight:700;font-size:12px;text-align:right}
+  .apptable td.l,.apptable th.l{text-align:left}
+  .apptable tr.sum td{background:#eef2ff;font-weight:800;color:var(--brand)}
+
+  footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);
+    font-size:12px;color:var(--sub);text-align:center}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-brand">CLAUDE ADOPTION REPORT</div>
+    <div class="sb-title">Claude Code · Design · Sync<br>활용 현황 및 향후 방향</div>
+    <div class="sb-meta">디지털마케팅팀 · 2026-07-02</div>
+    <nav class="sb-nav">
+      <a href="#ans">대표님 지시 요약 답변</a>
+      <div class="grp">현재 · 향후</div>
+      <a href="#matrix">도구별 현재/향후 매트릭스</a>
+      <a href="#now">현재 활용 사례 (Code)</a>
+      <div class="grp">향후 활용 방향</div>
+      <a href="#model">전체 프로세스 도식</a>
+      <a href="#proc">콘텐츠→유입 프로세스</a>
+      <a href="#plan">그룹·상황별 최적화 모델</a>
+      <a href="#designsync">Design · Sync 도입</a>
+      <div class="grp">부록</div>
+      <a href="#appendix">Appendix · 채널 회원수</a>
+    </nav>
+    <div class="sb-foot">[대표님 지시]<br>Claude Code·Design·Sync를 팀별로 현재 어떻게 활용하고, 향후 어떻게 활용할지 공유</div>
+  </aside>
+
+  <main class="main">
+    <header class="page">
+      <div class="eyebrow">DIGITAL MARKETING · AI TOOL ADOPTION</div>
+      <h1 class="page">Claude Code · Design · Sync 활용 현황 및 향후 방향</h1>
+      <div class="tags">
+        <span class="tag">팀 <b>디지털마케팅팀</b></span>
+        <span class="tag">현재 구축 도구 <b>7종</b></span>
+        <span class="tag">구축 방식 <b>Claude Code 자체 개발</b></span>
+        <span class="tag">외주 개발 <b>0건</b></span>
+      </div>
+
+      <div class="answer" id="ans">
+        <div class="q">[대표님 지시] <b>Claude Code·Design·Sync를 각 팀별로 현재 어떻게 활용하고 있고, 향후 어떻게 활용하면 좋을지 공유</b></div>
+        <div class="row">
+          <div class="col">
+            <div class="k">현재 (디지털마케팅팀)</div>
+            <div class="v"><b>Claude Code</b>로 마케팅 운영·분석 도구 <b>7종</b>을 개발자·외주 없이 직접 구축·운영, 엑셀 데이터 분석은 상시 활용. (Design·Sync는 신규 출시 기능으로 미도입)</div>
+          </div>
+          <div class="col">
+            <div class="k">향후</div>
+            <div class="v">자사 학원 DB + 온라인 채널 → 유입 → 랜딩 → <b>Claude 인사이트</b> → 마케팅 플랜 → 실행으로 이어지는 데이터 운영 모델로 확장. <b>Design·Sync</b>로 대시보드 표준화·팀 자산화.</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid g4" style="margin-top:22px">
+      <div class="kpi"><div class="lab">현재 구축 도구</div><div class="val">7<small> 종</small></div><div class="note">Claude Code 자체 구축</div></div>
+      <div class="kpi g"><div class="lab">개발 리소스</div><div class="val">0<small> 건 외주</small></div><div class="note">팀 직접 구축·운영</div></div>
+      <div class="kpi a"><div class="lab">보유 채널 회원</div><div class="val">145,138<small> 명</small></div><div class="note">기준 2026-07-02</div></div>
+      <div class="kpi v"><div class="lab">향후 도입</div><div class="val">Design·Sync</div><div class="note">디자인 표준화·연동</div></div>
+    </div>
+
+    <section id="matrix">
+      <div class="sec-head"><span class="sec-num">1</span><h2>도구별 현재 / 향후 활용 매트릭스</h2><span class="sub">대표님 질문 직접 대응</span></div>
+      <div class="grid g3">
+        <div class="toolcard">
+          <div class="top"><span class="ico" style="background:var(--brand)">C</span><div class="nm">Claude Code<span>코드 개발 에이전트</span></div></div>
+          <div class="body">
+            <div class="blk"><span class="lab now">현재 활용</span><p>마케팅 운영·분석 도구 <b>7종</b>을 직접 구축·운영. 무료체험 관리, 네이버 브랜드 검색, 세미나 신청·운영, 매출 관리, GA4 채널 리포트 등 + 엑셀 데이터 분석 상시.</p></div>
+            <div class="blk"><span class="lab next">향후 활용</span><p>콘텐츠 발행 결과·경쟁사 분석 → 다음 플랜·이슈 생성 → 유입까지 잇는 프로세스, 서책·서비스별 데이터 추출·유입 최적화 대시보드로 확장.</p></div>
+          </div>
+        </div>
+        <div class="toolcard">
+          <div class="top"><span class="ico" style="background:var(--violet)">D</span><div class="nm">Claude Design<span>디자인 · 캔버스 (베타)</span></div></div>
+          <div class="body">
+            <div class="blk"><span class="lab now">현재 활용</span><p><span class="status-off">미도입</span> — 신규 출시(베타) 기능.</p></div>
+            <div class="blk"><span class="lab next">향후 활용</span><p>운영 중인 대시보드·랜딩페이지의 <b>디자인 표준화</b>. 캔버스에서 비개발 인력도 화면을 편집·개선해 일관된 UI 유지.</p></div>
+          </div>
+        </div>
+        <div class="toolcard">
+          <div class="top"><span class="ico" style="background:var(--accent)">S</span><div class="nm">Claude Sync<span>Code ↔ Design 동기화</span></div></div>
+          <div class="body">
+            <div class="blk"><span class="lab now">현재 활용</span><p><span class="status-off">미도입</span> — 신규 출시 기능.</p></div>
+            <div class="blk"><span class="lab next">향후 활용</span><p><code>/design-sync</code> 양방향 동기화로 디자인 시스템을 저장소와 통일. 팀 내 대시보드 <b>템플릿·자산 공유</b>로 담당자 변경에도 유지.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="now">
+      <div class="sec-head"><span class="sec-num">2</span><h2>현재 활용 사례 — Claude Code로 구축한 운영 도구</h2><span class="sub">카드 클릭 시 바로 열림</span></div>
+      <div class="grid g4">
+        <a class="site" href="https://shiny-marigold-d1fb45.netlify.app/" target="_blank">
+          <span class="badge">무료체험 관리</span>
+          <div class="t">문법문제뱅크 무료체험 관리</div>
+          <div class="d">무료체험(~6/10) 신청·전환 데이터 관리 사이트</div>
+          <div class="u">shiny-marigold-d1fb45.netlify.app</div>
+        </a>
+        <a class="site" href="https://naver-brand-report.vercel.app/" target="_blank">
+          <span class="badge">키워드 관리</span>
+          <div class="t">네이버 브랜드 검색 관리</div>
+          <div class="d">브랜드 검색광고 키워드 성과 관리·리포트</div>
+          <div class="u">naver-brand-report.vercel.app</div>
+        </a>
+        <a class="site" href="https://seminar-dashboard-rouge.vercel.app/" target="_blank">
+          <span class="badge">신청 관리</span>
+          <div class="t">세미나 신청관리 (tutor)</div>
+          <div class="d">세미나 신청자 접수·관리 대시보드</div>
+          <div class="u">seminar-dashboard-rouge.vercel.app</div>
+        </a>
+        <a class="site" href="https://sales-report-x3tm.vercel.app/" target="_blank">
+          <span class="badge">매출 관리</span>
+          <div class="t">디지털마케팅팀 매출관리</div>
+          <div class="d">팀 매출 실적 취합·관리 대시보드</div>
+          <div class="u">sales-report-x3tm.vercel.app</div>
+        </a>
+        <a class="site" href="https://claude.ai/artifacts/latest/cea94c2a-c2fa-46e1-a1c5-72ca3750238a" target="_blank">
+          <span class="badge">세미나 신청</span>
+          <div class="t">세미나 신청페이지 제작</div>
+          <div class="d">세미나 신청 접수용 페이지 제작</div>
+          <div class="u">claude.ai/artifacts/…3750238a</div>
+        </a>
+        <a class="site" href="https://gilded-narwhal-203a39.netlify.app" target="_blank">
+          <span class="badge">세미나 앱</span>
+          <div class="t">세미나 채팅 순위집계 앱</div>
+          <div class="d">세미나 채팅 순위 집계 앱 제작·배포</div>
+          <div class="u">gilded-narwhal-203a39.netlify.app</div>
+        </a>
+        <a class="site new" href="ga4-dashboard-detail.html" target="_blank">
+          <span class="flag">NEW</span>
+          <span class="badge">GA4 분석</span>
+          <div class="t">GA4 데이터 분석 리포트</div>
+          <div class="d">CSV 기반 테스트용 채널 상세 리포트 (16개 채널·28일). 데이터 축적 시 디벨롭 예정.</div>
+          <div class="u">클릭 → ga4-dashboard-detail.html 바로 열림</div>
+        </a>
+        <div class="site nolink">
+          <span class="badge">실무 상시</span>
+          <div class="t">엑셀 데이터 분석·가공 (상시)</div>
+          <div class="d">프로젝트 활용 · 진단테스트 CS 응대</div>
+          <div class="mem"><span>별도 파일 없음 · 상시 업무</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <ul class="notes">
+          <li><b>효과 1 — 리소스 자립:</b> 개발·외주 없이 팀이 직접 대시보드·앱·페이지·분석 리포트를 구축·운영.</li>
+          <li><b>효과 2 — 데이터 자산화:</b> 운영 프로세스가 웹 도구로 남아 <b>담당자가 바뀌거나 인원이 줄어도 데이터로 관리 가능</b>.</li>
+          <li><b>효과 3 — 실무 상시 활용:</b> GA4 채널 분석, 엑셀 데이터 가공, 진단테스트 CS 응대 등 상시 업무에도 활용.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="model">
+      <div class="sec-head"><span class="sec-num">3</span><h2>향후 ① 데이터 기반 마케팅 운영 모델</h2><span class="sub">한눈에 보는 전체 흐름</span></div>
+
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="font-size:14.5px;font-weight:800;margin-bottom:14px">전체 프로세스 한눈에 보기 — 학원 DB · 채널 → 유입 → 랜딩 → 플랜 → 실행</h3>
+        <div class="flowmap">
+          <div class="sources">
+            <div class="srcbox db">
+              <div class="srchd"><span class="b" style="background:var(--brand)"></span>① 자사 학원 DB</div>
+              <span class="chip">튜터 학원 데이터</span><span class="chip">세미나 참석/예약</span><span class="chip">채널마케팅본부</span>
+            </div>
+            <div class="srcbox ch">
+              <div class="srchd"><span class="b" style="background:var(--accent)"></span>② 온라인 채널 (보유)</div>
+              <span class="chip">네이버 카페</span><span class="chip">블로그</span><span class="chip">인스타그램</span><span class="chip">유튜브</span><span class="chip">카카오톡</span>
+            </div>
+          </div>
+          <div class="converge">▼ &nbsp; 데이터 × 채널로 고객 접점 형성 &nbsp; ▼</div>
+          <div class="pipeline">
+            <div class="pbox"><div class="pt">③ 고객 유입</div><div class="pd">채널별 접근경로 유입</div></div>
+            <div class="pcon">→</div>
+            <div class="pbox"><div class="pt">④ 랜딩페이지</div><div class="pd">전용 랜딩에서 전환</div></div>
+            <div class="pcon">→</div>
+            <div class="pbox hl"><div class="pt">⑤ Claude 인사이트</div><div class="pd">데이터 기반 도출</div></div>
+            <div class="pcon">→</div>
+            <div class="pbox"><div class="pt">⑥ 마케팅 플랜</div><div class="pd">인사이트 기반 수립</div></div>
+            <div class="pcon">→</div>
+            <div class="pbox exec"><div class="pt">⑦ 실행</div><div class="pd">채널별 캠페인</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:800;margin-bottom:12px">자사 보유 채널 · 회원수 (기준 2026-07-02)</h3>
+        <div class="grid g4">
+          <a class="site" href="https://cafe.naver.com/buildngrow" target="_blank">
+            <span class="badge">네이버 카페</span><div class="t">Build &amp; Grow</div>
+            <div class="mem">20,021 <span>명</span></div>
+            <div class="u">cafe.naver.com/buildngrow</div>
+          </a>
+          <a class="site" href="https://blog.naver.com/hyohyo9292" target="_blank">
+            <span class="badge">블로그</span><div class="t">네이버 블로그</div>
+            <div class="mem">— <span>별도 집계</span></div>
+            <div class="u">blog.naver.com/hyohyo9292</div>
+          </a>
+          <a class="site" href="https://www.instagram.com/neungyule_official" target="_blank">
+            <span class="badge">인스타그램</span><div class="t">neungyule_official</div>
+            <div class="mem">30,002 <span>팔로워</span></div>
+            <div class="u">instagram.com/neungyule_official</div>
+          </a>
+          <a class="site" href="https://www.youtube.com/@LearningLAB_NE" target="_blank">
+            <span class="badge">유튜브</span><div class="t">LearningLAB_NE</div>
+            <div class="mem">6,420 <span>구독자</span></div>
+            <div class="u">youtube.com/@LearningLAB_NE</div>
+          </a>
+          <a class="site" href="http://pf.kakao.com/_TUqxiM" target="_blank">
+            <span class="badge">카카오톡</span><div class="t">카카오톡 채널</div>
+            <div class="mem">2,585 <span>친구</span></div>
+            <div class="u">pf.kakao.com/_TUqxiM</div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="proc">
+      <div class="sec-head"><span class="sec-num">4</span><h2>향후 ② 콘텐츠 발행 → 유입 연결 프로세스</h2><span class="sub">Claude Code 확장</span></div>
+      <div class="card">
+        <div class="flow">
+          <div class="step"><div class="n">STEP 1</div><div class="t">발행 결과 분석</div><div class="d">키워드·SNS 콘텐츠 발행 실적 취합·분석</div></div>
+          <div class="arrow">→</div>
+          <div class="step"><div class="n">STEP 2</div><div class="t">인사이트 도출</div><div class="d">성과 데이터에서 인사이트 추출</div></div>
+          <div class="arrow">→</div>
+          <div class="step"><div class="n">STEP 3</div><div class="t">경쟁사 분석</div><div class="d">경쟁사 콘텐츠 비교 분석</div></div>
+          <div class="arrow">→</div>
+          <div class="step"><div class="n">STEP 4</div><div class="t">플랜·이슈 생성</div><div class="d">다음 마케팅 플랜·이슈 기획</div></div>
+          <div class="arrow">→</div>
+          <div class="step"><div class="n">STEP 5</div><div class="t">유입 연결</div><div class="d">랜딩·채널로 유입 연결·측정</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="plan">
+      <div class="sec-head"><span class="sec-num">5</span><h2>향후 ③ 그룹·상황별 데이터 관리 최적화 모델</h2></div>
+      <div class="grid g2">
+        <div class="card plan">
+          <div class="h">사람이 바뀌어도 유지되는 데이터 모델</div>
+          <p>담당자 변경·인원 축소에도 효율적으로 <b>데이터로 관리 가능한 표준 모델</b>. 프로세스와 대시보드를 팀 자산으로 남기고, 외부 채널 데이터까지 연동.</p>
+        </div>
+        <div class="card plan g">
+          <div class="h">그룹별·상황별 마케팅 플랜</div>
+          <p>그룹별·상황별 정보를 취합해 <b>각 상황에 맞는 마케팅 플랜</b> 도출. 과거 마케팅 활동 실적 데이터를 함께 취합해 결과물·인사이트로 정리.</p>
+        </div>
+        <div class="card plan a">
+          <div class="h">과거 실적 → 인사이트 → 재활용</div>
+          <p>과거 마케팅 실적 데이터 취합 후 <b>결과물·인사이트 도출</b>, 추후 마케팅 활동에 재활용하는 순환 구조.</p>
+        </div>
+        <div class="card plan v">
+          <div class="h">서책·서비스별 유입 최적화</div>
+          <p>각 서책·서비스별 데이터를 추출해 <b>고객 유입 계획 수립에 적용</b>하는 최적화 계획으로 연결.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="designsync">
+      <div class="sec-head"><span class="sec-num">6</span><h2>향후 ④ Claude Design · Sync 도입 방향</h2></div>
+      <div class="grid g2">
+        <div class="card">
+          <h3 style="font-size:14.5px;font-weight:800;margin-bottom:10px">🎨 Claude Design</h3>
+          <ul class="notes">
+            <li><b>대시보드·랜딩 디자인 표준화</b> — 구축 도구와 신규 화면의 UI를 통일된 디자인으로 정리.</li>
+            <li><b>비개발 인력 참여</b> — 캔버스에서 직접 화면을 편집·개선.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="font-size:14.5px;font-weight:800;margin-bottom:10px">🔄 Claude Sync (/design-sync)</h3>
+          <ul class="notes">
+            <li><b>양방향 동기화</b> — Claude Code ↔ Claude Design 간 디자인 시스템을 저장소와 통일.</li>
+            <li><b>템플릿·자산 공유</b> — 팀 내 재사용 가능한 표준 템플릿으로 담당자 변경에도 연속성 확보.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="appendix">
+      <div class="sec-head"><span class="sec-num">A</span><h2>Appendix · 채널별 보유 회원수</h2><span class="sub">기준 2026-07-02</span></div>
+      <div class="card">
+        <table class="apptable">
+          <thead><tr><th class="l">채널</th><th class="l">분류</th><th>보유 회원수</th></tr></thead>
+          <tbody>
+            <tr><td class="l">네이버 카페</td><td class="l">능률</td><td>20,021</td></tr>
+            <tr><td class="l">인스타그램</td><td class="l">능률</td><td>30,002</td></tr>
+            <tr><td class="l">카카오톡</td><td class="l">능률</td><td>2,585</td></tr>
+            <tr><td class="l">유튜브</td><td class="l">능률</td><td>6,420</td></tr>
+            <tr class="sum"><td class="l">합계</td><td class="l"></td><td>145,138</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11.5px;color:var(--sub);margin-top:10px">※ 합계(145,138)는 블로그 등 위 표에 개별 표기되지 않은 채널을 포함한 전체 기준 수치입니다.</p>
+      </div>
+    </section>
+
+    <footer>Claude Code · Design · Sync 활용 현황 및 향후 방향 · 디지털마케팅팀 · 2026-07-02</footer>
+  </main>
+</div>
+</body>
+</html>

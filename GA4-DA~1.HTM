@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NE Build&Grow · GA4 채널 상세 리포트</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, 'Noto Sans KR', sans-serif;
+  background: #f0f2f5;
+  color: #1a1a2e;
+  min-height: 100vh;
+}
+.header {
+  background: #fff;
+  border-bottom: 1px solid #e8eaed;
+  padding: 0 1.5rem;
+  display: flex; align-items: center; gap: 10px;
+  height: 54px; position: sticky; top: 0; z-index: 50;
+}
+.logo { width: 28px; height: 28px; border-radius: 7px; background: #1a73e8; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
+.header-title { font-size: 14px; font-weight: 600; }
+.period-badge { margin-left: auto; background: #e8f0fe; color: #1557b0; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; }
+
+.page { max-width: 1080px; margin: 0 auto; padding: 1.25rem; }
+
+/* KPI */
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+.kpi { background: #fff; border-radius: 10px; border: 1px solid #e8eaed; padding: 1rem; position: relative; }
+.kpi-top { height: 3px; border-radius: 10px 10px 0 0; position: absolute; top: 0; left: 0; right: 0; }
+.kpi-label { font-size: 10px; color: #9aa0a6; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+.kpi-val { font-size: 22px; font-weight: 700; color: #1a1a2e; line-height: 1; }
+.kpi-sub { font-size: 11px; color: #9aa0a6; margin-top: 4px; }
+
+/* SECTION LABEL */
+.slabel { font-size: 10px; font-weight: 700; color: #9aa0a6; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+
+/* CHANNEL LIST */
+.ch-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1.25rem; }
+.ch-row {
+  background: #fff; border-radius: 10px;
+  border: 1px solid #e8eaed;
+  cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
+  overflow: hidden;
+}
+.ch-row:hover { border-color: #aecbfa; }
+.ch-row.active { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.15); }
+
+.ch-summary {
+  display: grid;
+  grid-template-columns: 220px 1fr 90px 90px 90px 90px 110px 36px;
+  align-items: center; gap: 8px;
+  padding: 12px 14px;
+}
+.ch-name-cell { display: flex; align-items: center; gap: 8px; }
+.ch-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.ch-name-text { font-size: 13px; font-weight: 500; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-name-type { font-size: 10px; color: #9aa0a6; margin-top: 1px; }
+
+.sess-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.sess-bar-bg { flex: 1; height: 6px; background: #f1f3f4; border-radius: 3px; }
+.sess-bar-fill { height: 100%; border-radius: 3px; }
+.sess-val { font-size: 12px; color: #5f6368; min-width: 42px; text-align: right; }
+
+.metric-cell { text-align: right; }
+.metric-val { font-size: 13px; font-weight: 500; color: #1a1a2e; }
+.metric-label { font-size: 10px; color: #9aa0a6; }
+
+.rate-pill { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; display: inline-block; }
+.rh { background: #e6f4ea; color: #0d652d; }
+.rm { background: #fef7e0; color: #8a5c00; }
+.rl { background: #fce8e6; color: #a50e0e; }
+
+.rev-val { font-size: 13px; font-weight: 600; color: #1557b0; }
+.rev-none { font-size: 12px; color: #dadce0; }
+
+.toggle-icon { font-size: 16px; color: #9aa0a6; transition: transform 0.2s; user-select: none; }
+.ch-row.active .toggle-icon { transform: rotate(180deg); color: #1a73e8; }
+
+/* DETAIL PANEL */
+.ch-detail {
+  display: none;
+  border-top: 1px solid #e8eaed;
+  background: #f8f9ff;
+  padding: 1.25rem 1.25rem 1.25rem;
+}
+.ch-row.active .ch-detail { display: block; }
+
+.detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1rem; }
+.dkpi { background: #fff; border-radius: 8px; border: 1px solid #e8eaed; padding: 0.85rem; }
+.dkpi-label { font-size: 10px; color: #9aa0a6; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.dkpi-val { font-size: 19px; font-weight: 700; color: #1a1a2e; }
+.dkpi-bar { height: 3px; border-radius: 2px; margin-top: 6px; background: #f1f3f4; }
+.dkpi-bar-fill { height: 100%; border-radius: 2px; }
+
+.detail-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dchart-card { background: #fff; border-radius: 8px; border: 1px solid #e8eaed; padding: 1rem; }
+.dchart-title { font-size: 12px; font-weight: 600; color: #5f6368; margin-bottom: 10px; }
+
+.insight-row {
+  background: #e8f0fe; border-radius: 8px;
+  padding: 10px 12px; font-size: 12px; color: #1557b0;
+  line-height: 1.7; margin-bottom: 1rem;
+  display: flex; gap: 8px;
+}
+.ins-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+/* HEADER ROW */
+.ch-header-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 90px 90px 90px 90px 110px 36px;
+  gap: 8px; padding: 6px 14px;
+  font-size: 10px; font-weight: 700; color: #9aa0a6;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  border-bottom: 1px solid #e8eaed;
+  background: #fff; border-radius: 10px 10px 0 0;
+  border: 1px solid #e8eaed;
+  margin-bottom: -7px;
+}
+.ch-header-row span { text-align: right; }
+.ch-header-row span:first-child { text-align: left; }
+.ch-header-row span:nth-child(2) { text-align: left; }
+
+@media (max-width: 860px) {
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+  .ch-summary { grid-template-columns: 1fr 80px 80px 80px 30px; }
+  .ch-summary .sess-col, .ch-summary .eps-col, .ch-summary .time-col { display: none; }
+  .detail-grid { grid-template-columns: repeat(2, 1fr); }
+  .detail-charts { grid-template-columns: 1fr; }
+  .ch-header-row { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">N</div>
+  <div>
+    <div class="header-title">NE Build&amp;Grow · GA4 채널 상세 리포트</div>
+  </div>
+  <div class="period-badge">2026.05.22 – 06.18 (28일)</div>
+</div>
+
+<div class="page">
+
+  <div class="slabel" style="margin-bottom:8px">핵심 지표 요약</div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-top" style="background:#1a73e8"></div><div class="kpi-label">총 세션</div><div class="kpi-val" id="t-sess">—</div><div class="kpi-sub">16개 채널</div></div>
+    <div class="kpi"><div class="kpi-top" style="background:#34a853"></div><div class="kpi-label">참여 세션</div><div class="kpi-val" id="t-eng">—</div><div class="kpi-sub" id="t-engr">—</div></div>
+    <div class="kpi"><div class="kpi-top" style="background:#fbbc05"></div><div class="kpi-label">총 이벤트</div><div class="kpi-val" id="t-ev">—</div><div class="kpi-sub" id="t-eps">—</div></div>
+    <div class="kpi"><div class="kpi-top" style="background:#9c27b0"></div><div class="kpi-label">주요 이벤트</div><div class="kpi-val" id="t-key">—</div><div class="kpi-sub">전환 합산</div></div>
+    <div class="kpi"><div class="kpi-top" style="background:#ea4335"></div><div class="kpi-label">총 수익</div><div class="kpi-val" id="t-rev">—</div><div class="kpi-sub">구매 기준</div></div>
+  </div>
+
+  <div class="slabel">채널별 상세 — 항목을 클릭하면 상세 정보가 펼쳐집니다</div>
+  <div class="ch-header-row">
+    <span>채널 / 캠페인</span>
+    <span style="text-align:left">세션 비율</span>
+    <span>참여율</span>
+    <span>세션당 이벤트</span>
+    <span>평균 참여시간</span>
+    <span>주요 이벤트</span>
+    <span>수익</span>
+    <span></span>
+  </div>
+  <div class="ch-list" id="ch-list"></div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const DATA = [
+  { channel:"(direct)", type:"직접 유입", sessions:6173, engaged:5572, engageRate:0.9026, avgTime:93.41, eps:13.30, events:82090, keyEvents:2, keyEventRate:0.000162, revenue:184499.99 },
+  { channel:"(referral)", type:"추천 유입", sessions:4020, engaged:3296, engageRate:0.8199, avgTime:49.60, eps:15.08, events:60637, keyEvents:6, keyEventRate:0.001493, revenue:180899.99 },
+  { channel:"(organic)", type:"자연 검색", sessions:2759, engaged:2494, engageRate:0.9040, avgTime:52.91, eps:17.55, events:48434, keyEvents:1, keyEventRate:0.000362, revenue:0 },
+  { channel:"nehomepage", type:"캠페인", sessions:1112, engaged:1061, engageRate:0.9541, avgTime:71.96, eps:22.77, events:25321, keyEvents:0, keyEventRate:0, revenue:0 },
+  { channel:"bngmall", type:"캠페인", sessions:716, engaged:685, engageRate:0.9567, avgTime:61.82, eps:19.36, events:13862, keyEvents:2, keyEventRate:0.002793, revenue:33800 },
+  { channel:"bng_readit_promo", type:"캠페인", sessions:215, engaged:210, engageRate:0.9767, avgTime:56.68, eps:20.87, events:4486, keyEvents:0, keyEventRate:0, revenue:0 },
+  { channel:"bng_seminar_262q", type:"캠페인", sessions:169, engaged:160, engageRate:0.9467, avgTime:53.06, eps:12.74, events:2153, keyEvents:0, keyEventRate:0, revenue:0 },
+  { channel:"bng_curation_2606", type:"캠페인", sessions:153, engaged:144, engageRate:0.9412, avgTime:7.11, eps:5.35, events:818, keyEvents:0, keyEventRate:0, revenue:0 },
+  { channel:"bng_readit120_event", type:"캠페인", sessions:120, engaged:108, engageRate:0.9000, avgTime:68.58, eps:22.54, events:2705, keyEvents:0, keyEventRate:0, revenue:0 },
+  { channel:"mr_readit_promo", type:"캠페인", sessions:19, engaged:18, engageRate:0.9474, avgTime:13.84, eps:10.42, events:198, keyEvents:0, keyEventRate:0, revenue:0 },
+  { channel:"welcomeevent", type:"캠페인", sessions:17, engaged:17, engageRate:1.0, avgTime:4.06, eps:9.94, events:169, keyEvents:0, keyEventRate:0, revenue:0 },
+  { channel:"(not set)", type:"미분류", sessions:62, engaged:5, engageRate:0.0806, avgTime:97.89, eps:15.23, events:944, keyEvents:1, keyEventRate:0.0161, revenue:14200 },
+  { channel:"bng_seminar_2605", type:"캠페인", sessions:5, engaged:5, engageRate:1.0, avgTime:6.2, eps:8.2, events:41, keyEvents:0, keyEventRate:0, revenue:0 },
+  { channel:"readit250_page_mo", type:"캠페인", sessions:5, engaged:5, engageRate:1.0, avgTime:6.2, eps:5.4, events:27, keyEvents:0, keyEventRate:0, revenue:0 },
+  { channel:"(ai-assistant)", type:"AI 유입", sessions:1, engaged:1, engageRate:1.0, avgTime:13, eps:7, events:7, keyEvents:0, keyEventRate:0, revenue:0 },
+  { channel:"readit30_page_mo", type:"캠페인", sessions:1, engaged:1, engageRate:1.0, avgTime:0, eps:4, events:4, keyEvents:0, keyEventRate:0, revenue:0 },
+];
+
+const COLORS = ['#1a73e8','#34a853','#fbbc05','#ea4335','#9c27b0','#00897b','#f57c00','#e91e63','#3f51b5','#00bcd4','#795548','#607d8b','#ff5722','#8bc34a','#ff9800','#673ab7'];
+
+const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : Math.round(n).toLocaleString('ko-KR');
+const fmtW = n => '₩' + Math.round(n).toLocaleString('ko-KR');
+const fmtSec = s => { const m = Math.floor(s/60), sec = Math.round(s%60); return m > 0 ? `${m}분 ${sec}초` : `${sec}초`; };
+const rateClass = r => r >= 0.9 ? 'rh' : r >= 0.7 ? 'rm' : 'rl';
+
+const totS = DATA.reduce((a,r)=>a+r.sessions,0);
+const totE = DATA.reduce((a,r)=>a+r.engaged,0);
+const totEv= DATA.reduce((a,r)=>a+r.events,0);
+const totK = DATA.reduce((a,r)=>a+r.keyEvents,0);
+const totR = DATA.reduce((a,r)=>a+r.revenue,0);
+const maxS = Math.max(...DATA.map(r=>r.sessions));
+const maxEps = Math.max(...DATA.map(r=>r.eps));
+const maxTime = Math.max(...DATA.map(r=>r.avgTime));
+const maxEv = Math.max(...DATA.map(r=>r.events));
+
+document.getElementById('t-sess').textContent = fmt(totS);
+document.getElementById('t-eng').textContent  = fmt(totE);
+document.getElementById('t-engr').textContent = '참여율 ' + Math.round(totE/totS*100) + '%';
+document.getElementById('t-ev').textContent   = fmt(totEv);
+document.getElementById('t-eps').textContent  = '세션당 ' + (totEv/totS).toFixed(1) + '건';
+document.getElementById('t-key').textContent  = fmt(totK);
+document.getElementById('t-rev').textContent  = fmtW(totR);
+
+function genInsight(r) {
+  const parts = [];
+  if (r.engageRate < 0.5) parts.push(`참여율이 ${Math.round(r.engageRate*100)}%로 매우 낮습니다. 랜딩 페이지 콘텐츠 점검이 필요합니다.`);
+  else if (r.engageRate > 0.95) parts.push(`참여율 ${Math.round(r.engageRate*100)}%로 매우 우수한 품질의 트래픽입니다.`);
+  if (r.avgTime < 15 && r.sessions > 10) parts.push(`평균 참여 시간(${fmtSec(r.avgTime)})이 짧아 이탈 개선이 필요합니다.`);
+  else if (r.avgTime > 80) parts.push(`평균 참여 시간 ${fmtSec(r.avgTime)}으로 콘텐츠 몰입도가 높습니다.`);
+  if (r.revenue > 0) parts.push(`수익 ${fmtW(r.revenue)}을 기록한 수익 기여 채널입니다.`);
+  if (r.keyEvents > 3) parts.push(`주요 이벤트 ${r.keyEvents}건으로 전환 성과가 돋보입니다.`);
+  if (r.eps > 20) parts.push(`세션당 이벤트 ${r.eps.toFixed(1)}건으로 사용자 활동이 활발합니다.`);
+  if (parts.length === 0) parts.push(`세션 ${fmt(r.sessions)}건, 참여율 ${Math.round(r.engageRate*100)}%로 평균적인 성과를 보입니다.`);
+  return parts.join(' ');
+}
+
+const detailCharts = {};
+
+function buildDetail(r, color, idx) {
+  const engPct = Math.round(r.engageRate * 100);
+  const nonEng = r.sessions - r.engaged;
+  const chartId1 = `dc1-${idx}`;
+  const chartId2 = `dc2-${idx}`;
+
+  return `
+  <div class="ch-detail" id="detail-${idx}">
+    <div class="insight-row">
+      <span class="ins-icon">💡</span>
+      <span>${genInsight(r)}</span>
+    </div>
+    <div class="detail-grid">
+      <div class="dkpi">
+        <div class="dkpi-label">세션</div>
+        <div class="dkpi-val">${fmt(r.sessions)}</div>
+        <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${Math.round(r.sessions/maxS*100)}%;background:${color}"></div></div>
+      </div>
+      <div class="dkpi">
+        <div class="dkpi-label">참여 세션</div>
+        <div class="dkpi-val">${fmt(r.engaged)}</div>
+        <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${engPct}%;background:#34a853"></div></div>
+      </div>
+      <div class="dkpi">
+        <div class="dkpi-label">총 이벤트</div>
+        <div class="dkpi-val">${fmt(r.events)}</div>
+        <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${Math.round(r.events/maxEv*100)}%;background:#fbbc05"></div></div>
+      </div>
+      <div class="dkpi">
+        <div class="dkpi-label">세션당 이벤트</div>
+        <div class="dkpi-val">${r.eps.toFixed(1)}</div>
+        <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${Math.round(r.eps/maxEps*100)}%;background:#9c27b0"></div></div>
+      </div>
+      <div class="dkpi">
+        <div class="dkpi-label">평균 참여시간</div>
+        <div class="dkpi-val">${fmtSec(r.avgTime)}</div>
+        <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${Math.round(r.avgTime/maxTime*100)}%;background:#00897b"></div></div>
+      </div>
+      <div class="dkpi">
+        <div class="dkpi-label">주요 이벤트</div>
+        <div class="dkpi-val">${r.keyEvents}</div>
+        <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${r.keyEvents > 0 ? Math.max(10, Math.round(r.keyEvents/6*100)) : 0}%;background:#ea4335"></div></div>
+      </div>
+      <div class="dkpi">
+        <div class="dkpi-label">전환율</div>
+        <div class="dkpi-val">${(r.keyEventRate * 100).toFixed(2)}%</div>
+        <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${Math.min(100,Math.round(r.keyEventRate*10000))}%;background:#f57c00"></div></div>
+      </div>
+      <div class="dkpi">
+        <div class="dkpi-label">수익</div>
+        <div class="dkpi-val" style="color:${r.revenue > 0 ? '#1557b0' : '#dadce0'}">${r.revenue > 0 ? fmtW(r.revenue) : '—'}</div>
+        <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${Math.round(r.revenue/totR*100)}%;background:#1a73e8"></div></div>
+      </div>
+    </div>
+    <div class="detail-charts">
+      <div class="dchart-card">
+        <div class="dchart-title">참여 세션 vs 비참여 세션</div>
+        <div style="position:relative;height:160px">
+          <canvas id="${chartId1}" role="img" aria-label="참여 세션 비율 도넛 차트">${fmt(r.engaged)} 참여 / ${fmt(nonEng)} 비참여</canvas>
+        </div>
+      </div>
+      <div class="dchart-card">
+        <div class="dchart-title">전체 대비 지표 비교 (백분위)</div>
+        <div style="position:relative;height:160px">
+          <canvas id="${chartId2}" role="img" aria-label="지표 레이더 차트">지표 비교</canvas>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderDetailCharts(r, idx) {
+  if (detailCharts[idx]) return;
+  detailCharts[idx] = true;
+
+  const nonEng = r.sessions - r.engaged;
+  const c1 = document.getElementById(`dc1-${idx}`);
+  if (c1) {
+    new Chart(c1, {
+      type: 'doughnut',
+      data: {
+        labels: ['참여 세션', '비참여 세션'],
+        datasets: [{ data: [r.engaged, nonEng], backgroundColor: ['#34a853', '#f1f3f4'], borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10, padding: 10 } },
+          tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmt(ctx.raw)} (${Math.round(ctx.raw / r.sessions * 100)}%)` } }
+        },
+        cutout: '58%'
+      }
+    });
+  }
+
+  const avgEps = totEv / totS;
+  const avgTime = DATA.reduce((a,d)=>a+d.avgTime,0) / DATA.length;
+  const avgRate = totE / totS;
+
+  const radarData = [
+    Math.min(100, Math.round(r.engageRate / 1.0 * 100)),
+    Math.min(100, Math.round(r.eps / (maxEps) * 100)),
+    Math.min(100, Math.round(r.avgTime / maxTime * 100)),
+    Math.min(100, Math.round(r.sessions / maxS * 100)),
+    Math.min(100, Math.round(r.keyEventRate / 0.02 * 100)),
+  ];
+
+  const c2 = document.getElementById(`dc2-${idx}`);
+  if (c2) {
+    new Chart(c2, {
+      type: 'radar',
+      data: {
+        labels: ['참여율', '이벤트/세션', '참여시간', '세션 점유', '전환율'],
+        datasets: [{
+          label: r.channel,
+          data: radarData,
+          backgroundColor: COLORS[idx % COLORS.length] + '33',
+          borderColor: COLORS[idx % COLORS.length],
+          borderWidth: 2,
+          pointBackgroundColor: COLORS[idx % COLORS.length],
+          pointRadius: 3
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          r: {
+            min: 0, max: 100,
+            ticks: { display: false, stepSize: 25 },
+            pointLabels: { font: { size: 10 } },
+            grid: { color: 'rgba(0,0,0,0.07)' }
+          }
+        }
+      }
+    });
+  }
+}
+
+const list = document.getElementById('ch-list');
+DATA.forEach((r, i) => {
+  const color = COLORS[i % COLORS.length];
+  const pct = Math.round(r.sessions / maxS * 100);
+  const rc = rateClass(r.engageRate);
+
+  const div = document.createElement('div');
+  div.className = 'ch-row';
+  div.innerHTML = `
+    <div class="ch-summary">
+      <div class="ch-name-cell">
+        <div class="ch-dot" style="background:${color}"></div>
+        <div>
+          <div class="ch-name-text">${r.channel}</div>
+          <div class="ch-name-type">${r.type}</div>
+        </div>
+      </div>
+      <div class="sess-bar-wrap sess-col">
+        <div class="sess-bar-bg"><div class="sess-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div class="sess-val">${fmt(r.sessions)}</div>
+      </div>
+      <div class="metric-cell">
+        <span class="rate-pill ${rc}">${Math.round(r.engageRate*100)}%</span>
+      </div>
+      <div class="metric-cell eps-col">
+        <div class="metric-val">${r.eps.toFixed(1)}</div>
+        <div class="metric-label">이벤트/세션</div>
+      </div>
+      <div class="metric-cell time-col">
+        <div class="metric-val">${fmtSec(r.avgTime)}</div>
+        <div class="metric-label">참여시간</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-val">${r.keyEvents > 0 ? r.keyEvents + '건' : '—'}</div>
+        <div class="metric-label">주요이벤트</div>
+      </div>
+      <div class="metric-cell">
+        ${r.revenue > 0 ? `<div class="rev-val">${fmtW(r.revenue)}</div>` : `<div class="rev-none">—</div>`}
+      </div>
+      <div class="toggle-icon">&#8964;</div>
+    </div>
+    ${buildDetail(r, color, i)}
+  `;
+
+  div.querySelector('.ch-summary').addEventListener('click', () => {
+    const isActive = div.classList.contains('active');
+    document.querySelectorAll('.ch-row.active').forEach(el => el.classList.remove('active'));
+    if (!isActive) {
+      div.classList.add('active');
+      renderDetailCharts(r, i);
+      setTimeout(() => div.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+  });
+
+  list.appendChild(div);
+});
+
+// Auto-open first row
+list.querySelector('.ch-row .ch-summary').click();
+</script>
+</body>
+</html>
