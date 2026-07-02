@@ -38,7 +38,6 @@
     padding:5px 13px;font-size:12.5px;color:var(--sub);box-shadow:var(--shadow)}
   .tag b{color:var(--ink)}
 
-  /* CEO answer box */
   .answer{background:linear-gradient(135deg,#3b5bdb,#5c7cfa);color:#fff;border-radius:16px;
     padding:22px 24px;box-shadow:var(--shadow);margin-top:22px}
   .answer .q{font-size:12.5px;opacity:.85;font-weight:600;margin-bottom:10px}
@@ -73,7 +72,6 @@
   .kpi .val small{font-size:13px;font-weight:700;color:var(--sub)}
   .kpi .note{font-size:11.5px;color:var(--sub);margin-top:3px}
 
-  /* Tool matrix */
   .toolcard{background:var(--card);border:1px solid var(--line);border-radius:16px;
     box-shadow:var(--shadow);overflow:hidden}
   .toolcard .top{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
@@ -91,7 +89,6 @@
   .toolcard p{font-size:12.8px;color:#33415c;line-height:1.55}
   .status-off{font-size:12px;color:var(--rose);font-weight:700}
 
-  /* Example sites */
   .site{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);
     border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);text-decoration:none;transition:.15s;height:100%}
   .site:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(20,30,60,.1);border-color:var(--brand2)}
@@ -101,15 +98,20 @@
   .site .d{font-size:12px;color:var(--sub);flex:1}
   .site .u{font-size:11px;color:var(--brand2);margin-top:10px;word-break:break-all;font-weight:600}
 
-  /* Process flow */
   .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
-  .step{flex:1;min-width:150px;background:#f7f9fd;border:1px solid var(--line);border-radius:12px;
+  .step{flex:1;min-width:140px;background:#f7f9fd;border:1px solid var(--line);border-radius:12px;
     padding:14px 16px;position:relative}
   .step .n{font-size:11px;font-weight:800;color:var(--brand)}
   .step .t{font-size:13px;font-weight:700;margin-top:3px}
   .step .d{font-size:11.5px;color:var(--sub);margin-top:3px}
   .arrow{display:grid;place-items:center;color:var(--brand2);font-size:20px;font-weight:800;padding:0 6px}
   @media(max-width:900px){.arrow{transform:rotate(90deg);padding:6px 0}}
+
+  .seg{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;
+    background:#f7f9fd;border:1px solid var(--line)}
+  .seg .dot{width:12px;height:12px;border-radius:50%;flex:0 0 12px}
+  .seg .t{font-weight:700;font-size:13.5px}
+  .seg .d{font-size:11.5px;color:var(--sub)}
 
   ul.notes{list-style:none}
   ul.notes li{font-size:13px;color:#33415c;padding:9px 0 9px 20px;position:relative;border-top:1px dashed var(--line)}
@@ -157,7 +159,6 @@
         <span class="tag">외주 개발 <b>0건</b></span>
       </div>
 
-      <!-- CEO direct answer -->
       <div class="answer" id="ans">
         <div class="q">[대표님 지시] <b>Claude Code·Design·Sync를 각 팀별로 현재 어떻게 활용하고 있고, 향후 어떻게 활용하면 좋을지 공유</b></div>
         <div class="row">
@@ -167,13 +168,12 @@
           </div>
           <div class="col">
             <div class="k">향후</div>
-            <div class="v"><b>콘텐츠 발행→유입</b>을 잇는 프로세스 자동화, 그룹·상황별 마케팅 최적화 모델로 확장. <b>Design·Sync</b>로 대시보드 디자인 표준화 및 팀 자산화.</div>
+            <div class="v">자사 학원 DB → 유입 → 보유 채널 → <b>Claude 인사이트</b> → 마케팅 계획 → 실행으로 이어지는 데이터 운영 모델로 확장. <b>Design·Sync</b>로 대시보드 표준화·팀 자산화.</div>
           </div>
         </div>
       </div>
     </header>
 
-    <!-- KPI -->
     <div class="grid g4" style="margin-top:22px">
       <div class="kpi"><div class="lab">현재 운영 도구</div><div class="val">4<small> 종</small></div><div class="note">Claude Code 자체 구축</div></div>
       <div class="kpi g"><div class="lab">개발 리소스</div><div class="val">0<small> 건 외주</small></div><div class="note">팀 직접 구축·운영</div></div>
@@ -181,7 +181,6 @@
       <div class="kpi v"><div class="lab">향후 도입</div><div class="val">Design·Sync</div><div class="note">디자인 표준화·연동</div></div>
     </div>
 
-    <!-- Matrix -->
     <section id="matrix">
       <div class="sec-head"><span class="sec-num">1</span><h2>도구별 현재 / 향후 활용 매트릭스</h2><span class="sub">대표님 질문 직접 대응</span></div>
       <div class="grid g3">
@@ -209,7 +208,6 @@
       </div>
     </section>
 
-    <!-- Current examples -->
     <section id="now">
       <div class="sec-head"><span class="sec-num">2</span><h2>현재 활용 사례 — Claude Code로 구축한 운영 도구</h2><span class="sub">모두 자체 구축·운영 중</span></div>
       <div class="grid g4">
@@ -247,7 +245,6 @@
       </div>
     </section>
 
-    <!-- Future: operating model -->
     <section id="model">
       <div class="sec-head"><span class="sec-num">3</span><h2>향후 ① 데이터 기반 마케팅 운영 모델</h2><span class="sub">자사 학원 DB → 실행</span></div>
 
@@ -304,7 +301,6 @@
       </div>
     </section>
 
-    <!-- Future: process -->
     <section id="proc">
       <div class="sec-head"><span class="sec-num">4</span><h2>향후 ② 콘텐츠 발행 → 유입 연결 프로세스</h2><span class="sub">Claude Code 확장</span></div>
       <div class="card">
@@ -322,7 +318,6 @@
       </div>
     </section>
 
-    <!-- Future: optimization model -->
     <section id="plan">
       <div class="sec-head"><span class="sec-num">5</span><h2>향후 ③ 그룹·상황별 데이터 관리 최적화 모델</h2></div>
       <div class="grid g2">
@@ -345,7 +340,6 @@
       </div>
     </section>
 
-    <!-- Future: Design + Sync -->
     <section id="designsync">
       <div class="sec-head"><span class="sec-num">6</span><h2>향후 ④ Claude Design · Sync 도입 방향</h2></div>
       <div class="grid g2">
